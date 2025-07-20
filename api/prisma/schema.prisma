@@ -7,13 +7,148 @@ datasource db {
   url      = env("DATABASE_URL")
 }
 
-// Basic user model for Phase 1 testing
+// User Management
 model User {
-  id        String   @id @default(cuid())
-  email     String   @unique
-  username  String   @unique
-  createdAt DateTime @default(now())
-  updatedAt DateTime @updatedAt
+  id          String   @id @default(cuid())
+  email       String   @unique
+  username    String   @unique
+  password    String   // Hashed with bcrypt
+  firstName   String?
+  lastName    String?
+  isActive    Boolean  @default(true)
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+  lastLoginAt DateTime?
 
+  // User Progress & Gamification
+  totalXP     Int      @default(0)
+  level       Int      @default(1)
+  streak      Int      @default(0)
+  lastActive  DateTime @default(now())
+
+  // Relationships
+  progress    UserProgress[]
+  achievements UserAchievement[]
+  gameResults GameResult[]
+  
   @@map("users")
+}
+
+// Subject Categories (e.g., "Medical", "Legal", "Tech")
+model Subject {
+  id          String   @id @default(cuid())
+  name        String   @unique
+  description String?
+  icon        String?  // Icon identifier
+  color       String?  // Theme color
+  isActive    Boolean  @default(true)
+  difficulty  Int      @default(1) // 1-5 scale
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+
+  // Relationships
+  vocabulary  Vocabulary[]
+  progress    UserProgress[]
+  
+  @@map("subjects")
+}
+
+// Vocabulary Terms
+model Vocabulary {
+  id          String   @id @default(cuid())
+  term        String   // The acronym (e.g., "API")
+  definition  String   // Full definition
+  fullForm    String   // What the acronym stands for
+  example     String?  // Usage example
+  difficulty  Int      @default(1) // 1-5 scale
+  isActive    Boolean  @default(true)
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+
+  // Relationships
+  subjectId   String
+  subject     Subject  @relation(fields: [subjectId], references: [id], onDelete: Cascade)
+  gameResults GameResult[]
+
+  @@map("vocabulary")
+}
+
+// User Progress per Subject
+model UserProgress {
+  id              String   @id @default(cuid())
+  userId          String
+  subjectId       String
+  
+  // Progress Metrics
+  totalTerms      Int      @default(0)
+  masteredTerms   Int      @default(0)
+  currentStreak   Int      @default(0)
+  bestStreak      Int      @default(0)
+  totalXP         Int      @default(0)
+  lastStudied     DateTime @default(now())
+  
+  createdAt       DateTime @default(now())
+  updatedAt       DateTime @updatedAt
+
+  // Relationships
+  user            User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  subject         Subject  @relation(fields: [subjectId], references: [id], onDelete: Cascade)
+
+  @@unique([userId, subjectId])
+  @@map("user_progress")
+}
+
+// Achievement System
+model Achievement {
+  id          String   @id @default(cuid())
+  name        String   @unique
+  description String
+  icon        String?
+  category    String   // "streak", "mastery", "exploration", etc.
+  requirement Int      // Threshold to unlock
+  xpReward    Int      @default(0)
+  isActive    Boolean  @default(true)
+  createdAt   DateTime @default(now())
+
+  // Relationships
+  userAchievements UserAchievement[]
+  
+  @@map("achievements")
+}
+
+// User Achievement Junction
+model UserAchievement {
+  id            String      @id @default(cuid())
+  userId        String
+  achievementId String
+  unlockedAt    DateTime    @default(now())
+
+  // Relationships
+  user          User        @relation(fields: [userId], references: [id], onDelete: Cascade)
+  achievement   Achievement @relation(fields: [achievementId], references: [id], onDelete: Cascade)
+
+  @@unique([userId, achievementId])
+  @@map("user_achievements")
+}
+
+// Game Results for Analytics
+model GameResult {
+  id           String   @id @default(cuid())
+  userId       String
+  vocabularyId String
+  gameType     String   // "multiple_choice", "fill_blank", "matching", etc.
+  
+  // Result Data
+  isCorrect    Boolean
+  timeSpent    Int      // milliseconds
+  attempts     Int      @default(1)
+  xpEarned     Int      @default(0)
+  
+  createdAt    DateTime @default(now())
+
+  // Relationships
+  user         User       @relation(fields: [userId], references: [id], onDelete: Cascade)
+  vocabulary   Vocabulary @relation(fields: [vocabularyId], references: [id], onDelete: Cascade)
+
+  @@map("game_results")
 }
