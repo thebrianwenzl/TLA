@@ -29,8 +29,7 @@
 - **Testing**: Jest + Supertest
 
 ### Database
-- **Primary Database**: PostgreSQL (use local instance for development)
-- **Future**: Neon for managed hosting in production
+- **Primary Database**: Neon even for local development
 
 ## Project Structure
 
