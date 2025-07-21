@@ -30,6 +30,7 @@ model User {
   progress    UserProgress[]
   achievements UserAchievement[]
   gameResults GameResult[]
+  gameSessions GameSession[]
   
   @@map("users")
 }
@@ -49,6 +50,8 @@ model Subject {
   // Relationships
   vocabulary  Vocabulary[]
   progress    UserProgress[]
+  challenges   Challenge[]
+  gameSessions GameSession[]
   
   @@map("subjects")
 }
@@ -151,4 +154,68 @@ model GameResult {
   vocabulary   Vocabulary @relation(fields: [vocabularyId], references: [id], onDelete: Cascade)
 
   @@map("game_results")
+}
+
+// Challenge definitions
+model Challenge {
+  id              String   @id @default(cuid())
+  subjectId       String
+  level           Int      // 1-5 difficulty level
+  type            String   // 'FourChoicesOneWord', 'ReverseDefinitions', etc.
+  prompt          String   // Question or instruction text
+  correctAnswer   String   // The correct answer
+  distractors     Json?    // Array of incorrect options for multiple choice
+  timeLimit       Int      @default(120) // seconds
+  xpReward        Int      @default(10)
+  difficultyLevel Int      @default(1)
+  challengeData   Json?    // Additional structured data for complex game types
+  isActive        Boolean  @default(true)
+  createdAt       DateTime @default(now())
+  updatedAt       DateTime @updatedAt
+
+  // Relationships
+  subject         Subject           @relation(fields: [subjectId], references: [id], onDelete: Cascade)
+  attempts        ChallengeAttempt[]
+
+  @@map("challenges")
+}
+
+// Game session tracking
+model GameSession {
+  id               String   @id @default(cuid())
+  userId           String
+  subjectId        String
+  sessionType      String   // 'main_path' or 'practice'
+  startedAt        DateTime @default(now())
+  completedAt      DateTime?
+  totalChallenges  Int?
+  correctAnswers   Int      @default(0)
+  xpEarned         Int      @default(0)
+  sessionData      Json?    // Additional session metrics
+  isCompleted      Boolean  @default(false)
+
+  // Relationships
+  user             User              @relation(fields: [userId], references: [id], onDelete: Cascade)
+  subject          Subject           @relation(fields: [subjectId], references: [id], onDelete: Cascade)
+  attempts         ChallengeAttempt[]
+
+  @@map("game_sessions")
+}
+
+// Individual challenge attempts within sessions
+model ChallengeAttempt {
+  id           String   @id @default(cuid())
+  sessionId    String
+  challengeId  String
+  userAnswer   String
+  isCorrect    Boolean
+  timeTaken    Int?     // milliseconds
+  xpEarned     Int      @default(0)
+  attemptedAt  DateTime @default(now())
+
+  // Relationships
+  session      GameSession @relation(fields: [sessionId], references: [id], onDelete: Cascade)
+  challenge    Challenge   @relation(fields: [challengeId], references: [id], onDelete: Cascade)
+
+  @@map("challenge_attempts")
 }

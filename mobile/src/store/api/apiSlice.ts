@@ -15,7 +15,7 @@ const baseQuery = fetchBaseQuery({
 export const apiSlice = createApi({
   reducerPath: 'api',
   baseQuery,
-  tagTypes: ['User', 'Subject', 'Vocabulary'],
+  tagTypes: ['User', 'Subject', 'Vocabulary', 'GameSession'],
   endpoints: (builder) => ({
     // Auth endpoints
     login: builder.mutation<
@@ -58,6 +58,51 @@ export const apiSlice = createApi({
       query: (searchTerm) => `/vocabulary/search?q=${searchTerm}`,
       providesTags: ['Vocabulary'],
     }),
+
+    // Game endpoints
+    startGameSession: builder.mutation<
+      { session: any; challenge: any },
+      { subjectId: string; sessionType?: 'main_path' | 'practice' }
+    >({
+      query: (data) => ({
+        url: '/game/sessions/start',
+        method: 'POST',
+        body: data,
+      }),
+      invalidatesTags: ['GameSession'],
+    }),
+
+    getGameSession: builder.query<{ session: any }, string>({
+      query: (sessionId) => `/game/sessions/${sessionId}`,
+      providesTags: (result, error, sessionId) => [{ type: 'GameSession', id: sessionId }],
+    }),
+
+    submitChallengeAttempt: builder.mutation<
+      { result: any; nextChallenge?: any; session: any },
+      { sessionId: string; challengeId: string; userAnswer: string; timeTaken?: number }
+    >({
+      query: ({ sessionId, challengeId, ...data }) => ({
+        url: `/game/sessions/${sessionId}/challenges/${challengeId}/attempt`,
+        method: 'POST',
+        body: data,
+      }),
+      invalidatesTags: (result, error, { sessionId }) => [{ type: 'GameSession', id: sessionId }],
+    }),
+
+    completeGameSession: builder.mutation<
+      { results: any },
+      string
+    >({
+      query: (sessionId) => ({
+        url: `/game/sessions/${sessionId}/complete`,
+        method: 'POST',
+      }),
+      invalidatesTags: (result, error, sessionId) => [
+        { type: 'GameSession', id: sessionId },
+        'User', // Invalidate user data since XP might have changed
+        'Subject', // Invalidate subject data since progress might have changed
+      ],
+    }),
   }),
 });
 
@@ -68,4 +113,8 @@ export const {
   useGetSubjectsQuery,
   useGetSubjectByIdQuery,
   useSearchVocabularyQuery,
+  useStartGameSessionMutation,
+  useGetGameSessionQuery,
+  useSubmitChallengeAttemptMutation,
+  useCompleteGameSessionMutation,
 } = apiSlice;

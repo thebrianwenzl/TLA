@@ -5,6 +5,7 @@ import AsyncStorage from '@react-native-async-storage/async-storage';
 import authSlice from './auth/authSlice';
 import subjectsSlice from './subjects/subjectsSlice';
 import progressSlice from './progress/progressSlice';
+import gamesSlice from './games/gamesSlice';
 import { apiSlice } from './api/apiSlice';
 
 // Only persist auth state
@@ -20,6 +21,7 @@ export const store = configureStore({
     auth: persistedAuthReducer,
     subjects: subjectsSlice,
     progress: progressSlice,
+    games: gamesSlice,
     api: apiSlice.reducer,
   },
   middleware: (getDefaultMiddleware) =>

@@ -166,9 +166,10 @@ const SubjectDetailScreen: React.FC<{ route: any; navigation: any }> = ({
               variant="solid"
               size="lg"
               onPress={() => {
-                // TODO: Navigate to game session (Phase 4)
-                console.log('Start Learning - Phase 4 feature');
+                navigation.navigate('Game', { subjectId: subject.id, sessionType: 'main_path' });
               }}
+              bg="primary.500"
+              _pressed={{ bg: "primary.600" }}
             >
               Start Learning
             </Button>
@@ -177,9 +178,11 @@ const SubjectDetailScreen: React.FC<{ route: any; navigation: any }> = ({
               variant="outline"
               size="lg"
               onPress={() => {
-                // TODO: Navigate to practice mode (Phase 4)
-                console.log('Practice Mode - Phase 4 feature');
+                navigation.navigate('Game', { subjectId: subject.id, sessionType: 'practice' });
               }}
+              borderColor="primary.500"
+              _text={{ color: "primary.500" }}
+              _pressed={{ bg: "primary.50" }}
             >
               Practice Mode
             </Button>
@@ -188,9 +191,11 @@ const SubjectDetailScreen: React.FC<{ route: any; navigation: any }> = ({
               variant="ghost"
               size="lg"
               onPress={() => {
-                // TODO: Navigate to glossary view
+                // TODO: Navigate to glossary view (future feature)
                 console.log('View Glossary - Future feature');
               }}
+              _text={{ color: "gray.600" }}
+              _pressed={{ bg: "gray.50" }}
             >
               View All Terms
             </Button>

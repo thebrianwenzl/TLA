@@ -3,6 +3,145 @@ import { AuthService } from '../src/services/authService';
 
 const prisma = new PrismaClient();
 
+async function seedChallenges() {
+  console.log('🎮 Seeding challenges...');
+
+  // Get existing subjects
+  const techSubject = await prisma.subject.findFirst({ where: { name: 'Technology' } });
+  const medicalSubject = await prisma.subject.findFirst({ where: { name: 'Medical' } });
+  const businessSubject = await prisma.subject.findFirst({ where: { name: 'Business' } });
+
+  if (!techSubject || !medicalSubject || !businessSubject) {
+    throw new Error('Subjects not found. Run Phase 2 seed first.');
+  }
+
+  // Technology challenges
+  const techChallenges = [
+    {
+      subjectId: techSubject.id,
+      level: 1,
+      type: 'FourChoicesOneWord',
+      prompt: 'What does API stand for?',
+      correctAnswer: 'Application Programming Interface',
+      distractors: [
+        'Advanced Programming Interface',
+        'Application Process Integration',
+        'Automated Programming Instructions'
+      ],
+      timeLimit: 30,
+      xpReward: 10,
+      difficultyLevel: 1,
+    },
+    {
+      subjectId: techSubject.id,
+      level: 1,
+      type: 'FourChoicesOneWord',
+      prompt: 'What does SQL stand for?',
+      correctAnswer: 'Structured Query Language',
+      distractors: [
+        'Simple Query Language',
+        'Standard Query Logic',
+        'System Query Language'
+      ],
+      timeLimit: 30,
+      xpReward: 10,
+      difficultyLevel: 2,
+    },
+    {
+      subjectId: techSubject.id,
+      level: 2,
+      type: 'FourChoicesOneWord',
+      prompt: 'What does REST stand for?',
+      correctAnswer: 'Representational State Transfer',
+      distractors: [
+        'Remote State Transfer',
+        'Reliable State Transmission',
+        'Resource State Transfer'
+      ],
+      timeLimit: 45,
+      xpReward: 15,
+      difficultyLevel: 3,
+    },
+  ];
+
+  // Medical challenges
+  const medicalChallenges = [
+    {
+      subjectId: medicalSubject.id,
+      level: 1,
+      type: 'FourChoicesOneWord',
+      prompt: 'What does CPR stand for?',
+      correctAnswer: 'Cardiopulmonary Resuscitation',
+      distractors: [
+        'Cardiac Pressure Relief',
+        'Circulatory Pulse Restoration',
+        'Cardiovascular Pressure Response'
+      ],
+      timeLimit: 30,
+      xpReward: 10,
+      difficultyLevel: 1,
+    },
+    {
+      subjectId: medicalSubject.id,
+      level: 1,
+      type: 'FourChoicesOneWord',
+      prompt: 'What does MRI stand for?',
+      correctAnswer: 'Magnetic Resonance Imaging',
+      distractors: [
+        'Medical Radiology Imaging',
+        'Molecular Resonance Inspection',
+        'Multiple Range Imaging'
+      ],
+      timeLimit: 30,
+      xpReward: 10,
+      difficultyLevel: 2,
+    },
+  ];
+
+  // Business challenges
+  const businessChallenges = [
+    {
+      subjectId: businessSubject.id,
+      level: 1,
+      type: 'FourChoicesOneWord',
+      prompt: 'What does ROI stand for?',
+      correctAnswer: 'Return on Investment',
+      distractors: [
+        'Rate of Interest',
+        'Revenue Operations Index',
+        'Risk Operations Indicator'
+      ],
+      timeLimit: 30,
+      xpReward: 10,
+      difficultyLevel: 1,
+    },
+    {
+      subjectId: businessSubject.id,
+      level: 1,
+      type: 'FourChoicesOneWord',
+      prompt: 'What does KPI stand for?',
+      correctAnswer: 'Key Performance Indicator',
+      distractors: [
+        'Key Process Integration',
+        'Knowledge Performance Index',
+        'Key Productivity Indicator'
+      ],
+      timeLimit: 30,
+      xpReward: 10,
+      difficultyLevel: 2,
+    },
+  ];
+
+  // Insert all challenges
+  const allChallenges = [...techChallenges, ...medicalChallenges, ...businessChallenges];
+  
+  for (const challenge of allChallenges) {
+    await prisma.challenge.create({ data: challenge });
+  }
+
+  console.log(`✅ Created ${allChallenges.length} challenges`);
+}
+
 async function main() {
   console.log('🌱 Starting database seed...');
 
@@ -158,6 +297,9 @@ async function main() {
     firstName: 'Test',
     lastName: 'User',
   });
+
+  // Seed challenges
+  await seedChallenges();
 
   console.log('✅ Database seeded successfully!');
   console.log(`📊 Created ${techVocabulary.length + medicalVocabulary.length + businessVocabulary.length} vocabulary terms`);
